@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/dashboard/Dashboard';
 import TransactionList from './components/transactions/TransactionList';
 import TransactionForm from './components/transactions/TransactionForm';
@@ -20,11 +20,13 @@ import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Estado de autenticación
+
   return (
     <Router>
       <Header />
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
         <Route path="/transactions" element={<TransactionList />} />
         <Route path="/transaction/:id" element={<TransactionForm />} />
         <Route path="/goals" element={<GoalList />} />
@@ -38,7 +40,7 @@ function App() {
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/settings" element={<UserSettings />} />
         <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/register" element={<Register />} />
       </Routes>
       <Footer />
