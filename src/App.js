@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext'; // Importa useAuth desde tu contexto
 import Dashboard from './components/dashboard/Dashboard';
 import TransactionList from './components/transactions/TransactionList';
 import TransactionForm from './components/transactions/TransactionForm';
@@ -20,33 +21,34 @@ import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Estado de autenticación
+    const { user } = useAuth(); // Usa el hook useAuth para acceder al usuario
 
-  return (
-    <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/transactions" element={<TransactionList />} />
-        <Route path="/transaction/:id" element={<TransactionForm />} />
-        <Route path="/goals" element={<GoalList />} />
-        <Route path="/goal/:id" element={<GoalForm />} />
-        <Route path="/budgets" element={<BudgetList />} />
-        <Route path="/budget/:id" element={<BudgetForm />} />
-        <Route path="/categories" element={<CategoryList />} />
-        <Route path="/category/:id" element={<CategoryForm />} />
-        <Route path="/category/edit/:id" element={<CategoryForm editMode={true} />} />
-        <Route path="/alerts" element={<AlertList />} />
-        <Route path="/alert/:id" element={<AlertForm />} />
-        <Route path="/profile" element={<UserProfile />} />
-        <Route path="/settings" element={<UserSettings />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-      <Footer />
-    </Router>
-  );
+    return (
+        <Router>
+            <Header />
+            <Routes>
+                <Route path="/" element={user ? <Dashboard /> : <Navigate replace to="/login" />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/transactions" element={<TransactionList />} />
+                <Route path="/transaction/:id" element={<TransactionForm />} />
+                <Route path="/goals" element={<GoalList />} />
+                <Route path="/goal/:id" element={<GoalForm />} />
+                <Route path="/budgets" element={<BudgetList />} />
+                <Route path="/budget/:id" element={<BudgetForm />} />
+                <Route path="/categories" element={<CategoryList />} />
+                <Route path="/category/:id" element={<CategoryForm />} />
+                <Route path="/category/edit/:id" element={<CategoryForm editMode={true} />} />
+                <Route path="/alerts" element={<AlertList />} />
+                <Route path="/alert/:id" element={<AlertForm />} />
+                <Route path="/profile" element={<UserProfile />} />
+                <Route path="/settings" element={<UserSettings />} />
+                <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+            </Routes>
+            <Footer />
+        </Router>
+    );
 }
 
 export default App;

@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; // Asegúrate de que la ruta es correcta
 import { Box, TextField, Button, Typography, Link } from '@mui/material';
 
-function Login({ setIsAuthenticated }) {
+function Login() {
   const [correo, setCorreo] = useState('');
   const [clave, setClave] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth(); // Usar la función login desde AuthContext
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = { correo, clave };
-
-    const response = await fetch('http://localhost:3001/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    const responseData = await response.json();
-
-    if (response.ok) {
-      setIsAuthenticated(true);  // Actualiza el estado de autenticación
-      navigate('/');  // Redirige al dashboard
-    } else {
-      alert(responseData.message);  // Muestra mensaje de error si hay uno
+    try {
+      const response = await fetch('http://localhost:3001/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo, clave })
+      });
+      const userData = await response.json();
+      if (response.ok) {
+        login(userData); // Actualiza el estado de autenticación global
+        navigate('/'); // Navegar al dashboard después del login
+      } else {
+        throw new Error(userData.message);
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert(error.message); // Manejo de errores
     }
   };
 

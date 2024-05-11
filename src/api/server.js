@@ -20,7 +20,8 @@ const db = mysql.createConnection({
 
 db.connect(err => {
   if (err) {
-    return console.error('error: ' + err.message);
+    console.error('Error al conectar a la base de datos:', err.message);
+    process.exit(1);
   }
   console.log('Conectado a la base de datos MySQL.');
 });
@@ -28,40 +29,33 @@ db.connect(err => {
 // Ruta para registrar un nuevo usuario
 app.post('/api/register', async (req, res) => {
   const { nombre, correo, clave } = req.body;
-
-  // Verificar si el correo ya está registrado
-  db.query('SELECT correo FROM Usuario WHERE correo = ?', [correo], async (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: "Error al verificar el usuario", error });
-    }
-
+  try {
+    const [results] = await db.promise().query('SELECT correo FROM Usuario WHERE correo = ?', [correo]);
     if (results.length > 0) {
       return res.status(409).send({ message: 'El correo ya está registrado' });
     }
 
-    // Si no está registrado, proceder con la creación del usuario
     const hashedPassword = await bcrypt.hash(clave, 8);
-    db.query('INSERT INTO Usuario (nombre, correo, clave, fechaRegistro, rol) VALUES (?, ?, ?, CURDATE(), "usuario")',
-      [nombre, correo, hashedPassword],
-      (error, results) => {
-        if (error) {
-          return res.status(500).send({ message: "Error al registrar el usuario", error });
-        }
-        res.status(201).send({ message: 'Usuario registrado correctamente' });
-      });
-  });
+    await db.promise().query('INSERT INTO Usuario (nombre, correo, clave, fechaRegistro, rol) VALUES (?, ?, ?, CURDATE(), "usuario")', [nombre, correo, hashedPassword]);
+    res.status(201).send({ message: 'Usuario registrado correctamente' });
+  } catch (error) {
+    res.status(500).send({ message: 'Error al registrar el usuario', error: error.message });
+  }
 });
 
+
 // Ruta para iniciar sesión
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { correo, clave } = req.body;
-  db.query('SELECT * FROM Usuario WHERE correo = ?', [correo], async (error, results) => {
-    if (error || results.length === 0 || !(await bcrypt.compare(clave, results[0].clave))) {
-      res.status(401).send({ message: 'Credenciales incorrectas' });
-    } else {
-      res.status(200).send({ message: 'Inicio de sesión exitoso' });
+  try {
+    const [results] = await db.promise().query('SELECT * FROM Usuario WHERE correo = ?', [correo]);
+    if (results.length === 0 || !(await bcrypt.compare(clave, results[0].clave))) {
+      return res.status(401).send({ message: 'Credenciales incorrectas' });
     }
-  });
+    res.status(200).send({ message: 'Inicio de sesión exitoso' });
+  } catch (error) {
+    res.status(500).send({ message: 'Error en el servidor', error: error.message });
+  }
 });
 
 // Rutas para las categorías

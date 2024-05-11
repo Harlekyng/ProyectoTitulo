@@ -1,18 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Typography, Button, List, ListItem, ListItemText, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; // Asegúrate de ajustar la ruta de importación según tu estructura
 
 function AdminPanel() {
-  // Ejemplo de datos, deberías cargar estos datos desde tu backend o estado global
-  const users = [
-    { id: 1, name: 'Alice', role: 'Usuario' },
-    { id: 2, name: 'Bob', role: 'Administrador' }
-  ];
+  const { user } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const categories = [
-    { id: 1, name: 'Transporte' },
-    { id: 2, name: 'Alimentación' }
-  ];
+  useEffect(() => {
+    if (user.role !== 'Administrador') {
+      // Redireccionar o mostrar mensaje si no es administrador
+      alert('Acceso no autorizado.');
+      return;
+    }
+
+    // Simula la carga de datos
+    fetchUsers();
+    fetchCategories();
+  }, [user]);
+
+  const fetchUsers = async () => {
+    const response = await fetch('/api/users'); // Ajusta la URL según tu configuración
+    const data = await response.json();
+    setUsers(data);
+  };
+
+  const fetchCategories = async () => {
+    const response = await fetch('/api/categories'); // Ajusta la URL según tu configuración
+    const data = await response.json();
+    setCategories(data);
+  };
 
   return (
     <Box p={2}>
