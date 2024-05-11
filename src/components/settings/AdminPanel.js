@@ -1,66 +1,61 @@
-import React, { useEffect, useState } from 'react';
-import { Typography, Button, List, ListItem, ListItemText, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // Asegúrate de ajustar la ruta de importación según tu estructura
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Typography, List, ListItem, ListItemText } from '@mui/material';
+import { useAuth } from '../../context/AuthContext';
 
 function AdminPanel() {
-  const { user } = useAuth();
-  const [users, setUsers] = useState([]);
-  const [categories, setCategories] = useState([]);
+    const [users, setUsers] = useState([]);
+    const { user } = useAuth();
 
-  useEffect(() => {
-    if (user.role !== 'Administrador') {
-      // Redireccionar o mostrar mensaje si no es administrador
-      alert('Acceso no autorizado.');
-      return;
-    }
+    useEffect(() => {
+        if (user && user.rol === 'administrador') {
+            fetchUsers();
+        }
+    }, [user]);
 
-    // Simula la carga de datos
-    fetchUsers();
-    fetchCategories();
-  }, [user]);
+    const fetchUsers = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/api/users');
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error('Error al obtener usuarios');
+            }
+            setUsers(data);
+        } catch (error) {
+            console.error('Error al cargar usuarios:', error);
+            alert(error.message);
+        }
+    };
 
-  const fetchUsers = async () => {
-    const response = await fetch('/api/users'); // Ajusta la URL según tu configuración
-    const data = await response.json();
-    setUsers(data);
-  };
+    const handleDelete = async (userId) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/users/${userId}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                throw new Error('Error al eliminar usuario');
+            }
+            alert('Usuario eliminado correctamente');
+            fetchUsers();  // Recargar lista tras eliminar
+        } catch (error) {
+            console.error('Error al eliminar usuario:', error);
+            alert(error.message);
+        }
+    };
 
-  const fetchCategories = async () => {
-    const response = await fetch('/api/categories'); // Ajusta la URL según tu configuración
-    const data = await response.json();
-    setCategories(data);
-  };
-
-  return (
-    <Box p={2}>
-      <Typography variant="h6">Gestión de Usuarios</Typography>
-      <List>
-        {users.map(user => (
-          <ListItem key={user.id}>
-            <ListItemText primary={user.name} secondary={user.role} />
-            <Button>Edit</Button>
-            <Button>Delete</Button>
-          </ListItem>
-        ))}
-      </List>
-      <Button variant="contained" color="primary" component={Link} to="/add-user">Añadir Usuario</Button>
-
-      <Typography variant="h6" sx={{ mt: 4 }}>Gestión de Categorías</Typography>
-      <List>
-        {categories.map(category => (
-          <ListItem key={category.id}>
-            <ListItemText primary={category.name} />
-            <Button>Edit</Button>
-            <Button>Delete</Button>
-          </ListItem>
-        ))}
-      </List>
-      <Button variant="contained" color="primary" component={Link} to="/add-category">Añadir Categoría</Button>
-
-      <Button variant="contained" color="primary" component={Link} to="/" sx={{ mt: 4 }}>Volver</Button>
-    </Box>
-  );
+    return (
+        <Box p={2}>
+            <Typography variant="h6">Gestión de Usuarios</Typography>
+            <List>
+                {users.map(user => (
+                    <ListItem key={user.id} secondaryAction={
+                        <Button onClick={() => handleDelete(user.id)} color="error">Eliminar</Button>
+                    }>
+                        <ListItemText primary={user.name} secondary={`Rol: ${user.role}`} />
+                    </ListItem>
+                ))}
+            </List>
+        </Box>
+    );
 }
 
 export default AdminPanel;

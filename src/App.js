@@ -22,7 +22,7 @@ import Footer from './components/common/Footer';
 
 function App() {
     const { user } = useAuth(); // Usa el hook useAuth para acceder al usuario
-
+ console.log(user);
     return (
         <Router>
             <Header />
