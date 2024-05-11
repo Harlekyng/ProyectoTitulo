@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { TextField, Button, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
 
-function CategoryForm() {
-  const [category, setCategory] = useState({ name: '' });
+function CategoryForm({ editMode }) {
+  const [category, setCategory] = useState({ nombre: '', descripcion: '' });
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  useEffect(() => {
+    if (editMode) {
+      fetch(`http://localhost:3001/api/categories/${id}`)
+        .then(response => response.json())
+        .then(data => setCategory({ nombre: data.nombre, descripcion: data.descripcion }))
+        .catch(error => console.error('Error:', error));
+    }
+  }, [editMode, id]);
 
   const handleChange = (e) => {
     setCategory({ ...category, [e.target.name]: e.target.value });
@@ -11,20 +22,48 @@ function CategoryForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(category);
+    const method = editMode ? 'PUT' : 'POST';
+    const url = `http://localhost:3001/api/categories${editMode ? `/${id}` : ''}`;
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(category),
+    })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        navigate('/categories');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al guardar la categoría');
+      });
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
       <TextField
         label="Nombre de la Categoría"
-        name="name"
-        value={category.name}
+        name="nombre"
+        value={category.nombre}
         onChange={handleChange}
         fullWidth
+        margin="normal"
       />
-      <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2 }}>Guardar</Button>
-      <Button variant="contained" component={Link} to="/" sx={{ mt: 3, mb: 2 }}>Volver</Button>
+      <TextField
+        label="Descripción"
+        name="descripcion"
+        value={category.descripcion}
+        onChange={handleChange}
+        fullWidth
+        margin="normal"
+        multiline
+      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+        <Button type="submit" variant="contained" color="primary">Guardar</Button>
+        <Button variant="contained" color="secondary" onClick={() => navigate('/categories')}>Volver</Button>
+      </Box>
     </Box>
   );
 }

@@ -41,14 +41,14 @@ app.post('/api/register', async (req, res) => {
 
     // Si no está registrado, proceder con la creación del usuario
     const hashedPassword = await bcrypt.hash(clave, 8);
-    db.query('INSERT INTO Usuario (nombre, correo, clave, fechaRegistro, rol) VALUES (?, ?, ?, CURDATE(), "usuario")', 
-             [nombre, correo, hashedPassword], 
-             (error, results) => {
-      if (error) {
-        return res.status(500).send({ message: "Error al registrar el usuario", error });
-      }
-      res.status(201).send({ message: 'Usuario registrado correctamente' });
-    });
+    db.query('INSERT INTO Usuario (nombre, correo, clave, fechaRegistro, rol) VALUES (?, ?, ?, CURDATE(), "usuario")',
+      [nombre, correo, hashedPassword],
+      (error, results) => {
+        if (error) {
+          return res.status(500).send({ message: "Error al registrar el usuario", error });
+        }
+        res.status(201).send({ message: 'Usuario registrado correctamente' });
+      });
   });
 });
 
@@ -64,8 +64,51 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// Iniciar el servidor
+// Rutas para las categorías
+// Obtener todas las categorías
+app.get('/api/categories', (req, res) => {
+  db.query('SELECT * FROM CategoriaGastos', (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: "Error al obtener categorías", error });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// Agregar una nueva categoría
+app.post('/api/categories', (req, res) => {
+  const { nombre, descripcion } = req.body;
+  db.query('INSERT INTO CategoriaGastos (nombre, descripcion) VALUES (?, ?)', [nombre, descripcion], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: "Error al agregar categoría", error });
+    }
+    res.status(201).send({ message: 'Categoría agregada correctamente', id: results.insertId });
+  });
+});
+
+// Actualizar una categoría
+app.put('/api/categories/:id', (req, res) => {
+  const { nombre, descripcion } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE CategoriaGastos SET nombre = ?, descripcion = ? WHERE id = ?', [nombre, descripcion, id], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: "Error al actualizar la categoría", error });
+    }
+    res.status(200).send({ message: 'Categoría actualizada correctamente' });
+  });
+});
+
+// Eliminar una categoría
+app.delete('/api/categories/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM CategoriaGastos WHERE id = ?', [id], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: "Error al eliminar la categoría", error });
+    }
+    res.status(200).send({ message: 'Categoría eliminada correctamente' });
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
-

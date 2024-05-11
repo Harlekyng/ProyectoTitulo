@@ -35,6 +35,7 @@ function App() {
         <Route path="/budget/:id" element={<BudgetForm />} />
         <Route path="/categories" element={<CategoryList />} />
         <Route path="/category/:id" element={<CategoryForm />} />
+        <Route path="/category/edit/:id" element={<CategoryForm editMode={true} />} />
         <Route path="/alerts" element={<AlertList />} />
         <Route path="/alert/:id" element={<AlertForm />} />
         <Route path="/profile" element={<UserProfile />} />
